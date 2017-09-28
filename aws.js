@@ -47,11 +47,14 @@ var AWS = (function() {
         throw 'Error: Action undefined';
       }
 
+      method = method || 'GET';
       if (payload == undefined) {
         payload = '';
       } else if (typeof payload !== 'string') {
         payload = JSON.stringify(payload);
       }
+      headers = headers || {};
+      uri = uri || '/';
 
       var Crypto = loadCrypto();
 
@@ -59,10 +62,7 @@ var AWS = (function() {
 
       var dateStringFull = Utilities.formatDate(d, 'UTC', "yyyyMMdd'T'HHmmss'Z'");
       var dateStringShort = Utilities.formatDate(d, 'UTC', 'yyyyMMdd');
-      var method = method || 'GET';
-      var uri = uri || '/';
       var host = service + '.' + region + '.amazonaws.com';
-      var headers = headers || {};
       var request;
       var query;
       if (method.toLowerCase() == 'post') {
