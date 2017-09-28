@@ -59,7 +59,6 @@ var AWS = (function() {
 
       var dateStringFull = Utilities.formatDate(d, 'UTC', "yyyyMMdd'T'HHmmss'Z'");
       var dateStringShort = Utilities.formatDate(d, 'UTC', 'yyyyMMdd');
-      var payload = payload || '';
       var method = method || 'GET';
       var uri = uri || '/';
       var host = service + '.' + region + '.amazonaws.com';
@@ -79,7 +78,6 @@ var AWS = (function() {
         request = 'https://' + host + uri + '?' + query;
       }
 
-      var canonQuery = getCanonQuery(query);
       var canonHeaders = '';
       var signedHeaders = '';
       headers['Host'] = host;
@@ -98,8 +96,6 @@ var AWS = (function() {
         signedHeaders,
         Crypto.SHA256(payload)
       ].join('\n');
-      var canonHash = Crypto.SHA256(CanonicalString);
-
       var algorithm = 'AWS4-HMAC-SHA256';
       var scope = dateStringShort + '/' + region + '/' + service + '/aws4_request';
 
@@ -107,7 +103,7 @@ var AWS = (function() {
         algorithm,
         dateStringFull,
         scope,
-        canonHash
+        Crypto.SHA256(CanonicalString)
       ].join('\n');
 
       var key = getSignatureKey(Crypto, secretKey, dateStringShort, region, service);
@@ -124,8 +120,7 @@ var AWS = (function() {
         payload: payload,
       };
 
-      var response = UrlFetchApp.fetch(request, options);
-      return response;
+      return UrlFetchApp.fetch(request, options);
     }
   };
 
