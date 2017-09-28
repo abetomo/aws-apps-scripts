@@ -49,8 +49,8 @@ var AWS = (function() {
 
       var d = new Date();
 
-      var dateStringFull =  String(d.getUTCFullYear()) + addZero(d.getUTCMonth()+1) + addZero(d.getUTCDate()) + "T" + addZero(d.getUTCHours()) + addZero(d.getUTCMinutes()) + addZero(d.getUTCSeconds()) + 'Z';
-      var dateStringShort = String(d.getUTCFullYear()) + addZero(d.getUTCMonth()+1) + addZero(d.getUTCDate());
+      var dateStringFull = Utilities.formatDate(d, 'UTC', "yyyyMMdd'T'HHmmss'Z'");
+      var dateStringShort = Utilities.formatDate(d, 'UTC', 'yyyyMMdd');
       var payload = payload || '';
       var method = method || "GET";
       var uri = uri || "/";
@@ -150,13 +150,6 @@ var AWS = (function() {
   // For characters only
   function isCanon(c) {
     return /[a-z0-9-_.~=&]/i.test(c);
-  }
-
-  function addZero(s) {
-    if(Number(s) < 10) {
-      return '0' + String(s);
-    }
-    return String(s);
   }
 
   /**
