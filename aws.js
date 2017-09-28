@@ -124,27 +124,6 @@ var AWS = (function() {
     }
   };
 
-  function getCanonQuery(r) {
-    var query = r.split('&').sort().join('&');
-
-    var canon = '';
-    for (var i = 0; i < query.length; i++) {
-      var element = query.charAt(i);
-      if (isCanon(element)) {
-        canon += element;
-      } else {
-        canon += '%' + element.charCodeAt(0).toString(16);
-      }
-    }
-
-    return canon;
-  }
-
-  // For characters only
-  function isCanon(c) {
-    return /[a-z0-9-_.~=&]/i.test(c);
-  }
-
   /**
    * Source: http://docs.aws.amazon.com/general/latest/gr/signature-v4-examples.html#signature-v4-examples-jscript
    */
