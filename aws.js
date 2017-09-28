@@ -10,9 +10,9 @@ var AWS = (function() {
      * @param {string} secret_key - the new secret key
      */
     setNewKey: function(access_key, secret_key) {
-      if(access_key == undefined) {
+      if (access_key == undefined) {
         throw "Error: No access key provided";
-      } else if(secret_key == undefined) {
+      } else if (secret_key == undefined) {
         throw "Error: No secret key provided";
       }
       accessKey = access_key;
@@ -39,17 +39,17 @@ var AWS = (function() {
      * @return {string} the server response to the request
      */
     request: function(service, region, action, params, method, payload, headers, uri) {
-      if(service == undefined) {
+      if (service == undefined) {
         throw "Error: Service undefined";
-      } else if(region == undefined) {
+      } else if (region == undefined) {
         throw "Error: Region undefined";
-      } else if(action == undefined) {
+      } else if (action == undefined) {
         throw "Error: Action undefined";
       }
 
-      if(payload == undefined) {
+      if (payload == undefined) {
         payload = "";
-      } else if(typeof payload !== "string") {
+      } else if (typeof payload !== "string") {
         payload = JSON.stringify(payload);
       }
 
@@ -62,21 +62,21 @@ var AWS = (function() {
       var payload = payload || '';
       var method = method || "GET";
       var uri = uri || "/";
-      var host = service+"."+region+".amazonaws.com";
+      var host = service + "." + region + ".amazonaws.com";
       var headers = headers || {};
       var request;
       var query;
-      if(method.toLowerCase() == "post") {
-        request = "https://"+host+uri;
+      if (method.toLowerCase() == "post") {
+        request = "https://" + host + uri;
         query = '';
       } else {
-        query = "Action="+action;
-        if(params) {
-          Object.keys(params).sort(function(a,b) { return a<b?-1:1; }).forEach(function(name) {
-            query += "&"+name+"="+encodeURIComponent(params[name]);
+        query = "Action=" + action;
+        if (params) {
+          Object.keys(params).sort(function(a, b) { return a < b ? -1 : 1; }).forEach(function(name) {
+            query += "&" + name + "=" + encodeURIComponent(params[name]);
           });
         }
-        request = "https://"+host+uri+"?"+query;
+        request = "https://" + host + uri + "?" + query;
       }
 
       var canonQuery = getCanonQuery(query);
@@ -84,32 +84,36 @@ var AWS = (function() {
       var signedHeaders = "";
       headers["Host"] = host;
       headers["X-Amz-Date"] = dateStringFull;
-      Object.keys(headers).sort(function(a,b){return a<b?-1:1;}).forEach(function(h, index, ordered) {
+      Object.keys(headers).sort(function(a, b){return a < b ? -1 : 1;}).forEach(function(h, index, ordered) {
         canonHeaders += h.toLowerCase() + ":" + headers[h] + "\n";
         signedHeaders += h.toLowerCase() + ";";
       });
-      signedHeaders = signedHeaders.substring(0, signedHeaders.length-1);
+      signedHeaders = signedHeaders.substring(0, signedHeaders.length - 1);
 
-      var CanonicalString = method+'\n'
-      + uri+'\n'
-      + query+'\n'
-      + canonHeaders+'\n'
-      + signedHeaders+'\n'
-      + Crypto.SHA256(payload);
+      var CanonicalString = [
+        method,
+        uri,
+        query,
+        canonHeaders,
+        signedHeaders,
+        Crypto.SHA256(payload)
+      ].join('\n');
       var canonHash = Crypto.SHA256(CanonicalString);
 
       var algorithm = "AWS4-HMAC-SHA256";
-      var scope = dateStringShort + "/"+region+"/"+service+"/aws4_request";
+      var scope = dateStringShort + "/" + region + "/" + service + "/aws4_request";
 
-      var StringToSign = algorithm+'\n'
-      + dateStringFull+'\n'
-      + scope+'\n'
-      + canonHash;
+      var StringToSign = [
+        algorithm,
+        dateStringFull,
+        scope,
+        canonHash
+      ].join('\n');
 
       var key = getSignatureKey(Crypto, secretKey, dateStringShort, region, service);
       var signature = Crypto.HMAC(Crypto.SHA256, StringToSign, key, { asBytes: false });
 
-      var authHeader = algorithm +" Credential="+accessKey+"/"+scope+", SignedHeaders="+signedHeaders+", Signature="+signature;
+      var authHeader = algorithm + " Credential=" + accessKey + "/" + scope + ", SignedHeaders=" + signedHeaders + ", Signature=" + signature;
 
       headers["Authorization"] = authHeader;
       delete headers["Host"];
@@ -129,12 +133,12 @@ var AWS = (function() {
     var query = r.split("&").sort().join("&");
 
     var canon = "";
-    for(var i = 0; i < query.length; i++) {
+    for (var i = 0; i < query.length; i++) {
       var element = query.charAt(i);
-      if(isCanon(element)) {
+      if (isCanon(element)) {
         canon += element;
       } else {
-        canon += "%"+element.charCodeAt(0).toString(16)
+        canon += "%" + element.charCodeAt(0).toString(16);
       }
     }
 
@@ -150,10 +154,10 @@ var AWS = (function() {
    * Source: http://docs.aws.amazon.com/general/latest/gr/signature-v4-examples.html#signature-v4-examples-jscript
    */
   function getSignatureKey(Crypto, key, dateStamp, regionName, serviceName) {
-    var kDate= Crypto.HMAC(Crypto.SHA256, dateStamp, "AWS4" + key, { asBytes: true});
-    var kRegion= Crypto.HMAC(Crypto.SHA256, regionName, kDate, { asBytes: true });
-    var kService=Crypto.HMAC(Crypto.SHA256, serviceName, kRegion, { asBytes: true });
-    var kSigning= Crypto.HMAC(Crypto.SHA256, "aws4_request", kService, { asBytes: true });
+    var kDate = Crypto.HMAC(Crypto.SHA256, dateStamp, "AWS4" + key, { asBytes: true});
+    var kRegion = Crypto.HMAC(Crypto.SHA256, regionName, kDate, { asBytes: true });
+    var kService = Crypto.HMAC(Crypto.SHA256, serviceName, kRegion, { asBytes: true });
+    var kSigning = Crypto.HMAC(Crypto.SHA256, "aws4_request", kService, { asBytes: true });
 
     return kSigning;
   }
